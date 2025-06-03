@@ -60,10 +60,20 @@
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         await base.OnAfterRenderAsync(firstRender);
-        if (firstRender)
+
+        string username = (await ProtectedSessionStore.GetAsync<string>("username")).Value ?? "";
+        string token = (await ProtectedSessionStore.GetAsync<string>("token")).Value ?? "";
+        if (Helper.checkToken(username, token) == false)
         {
-            if (incident.Incident_id == 0) incident.Reporter = (await ProtectedSessionStore.GetAsync<string>("username")).Value ?? "";
-            StateHasChanged();
+            NavManager.NavigateTo("/");
+        }
+        else
+        {
+            if (firstRender)
+            {
+                if (incident.Incident_id == 0) incident.Reporter = username;
+                StateHasChanged();
+            }
         }
     }
 

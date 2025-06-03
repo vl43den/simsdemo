@@ -53,18 +53,20 @@ else
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         await base.OnAfterRenderAsync(firstRender);
-        if (firstRender)
+
+        string username = (await ProtectedSessionStore.GetAsync<string>("username")).Value ?? "";
+        string token = (await ProtectedSessionStore.GetAsync<string>("token")).Value ?? "";
+        if (Helper.checkToken(username, token) == false)
         {
-            string token = (await ProtectedSessionStore.GetAsync<string>("token")).Value ?? "";
-            if (token == "")
-            {
-                NavManager.NavigateTo("/");
-            }
-            else
+            NavManager.NavigateTo("/");
+        }
+        else
+        {
+            if (firstRender)
             {
                 incidentList = new Incident().GetList();
+                StateHasChanged();
             }
-            StateHasChanged();
         }
     }
 

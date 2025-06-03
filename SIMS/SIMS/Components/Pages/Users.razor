@@ -53,16 +53,18 @@ else
         await base.OnAfterRenderAsync(firstRender);
         if (firstRender)
         {
+            string username = (await ProtectedSessionStore.GetAsync<string>("username")).Value ?? "";
             string token = (await ProtectedSessionStore.GetAsync<string>("token")).Value ?? "";
-            if (token == "")
+            if (Helper.checkToken(username, token) == false)
             {
                 NavManager.NavigateTo("/");
             }
             else
             {
                 userList = new User().GetList();
+                StateHasChanged();
             }
-            StateHasChanged();
+
         }
     }
 }

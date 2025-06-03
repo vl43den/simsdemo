@@ -23,6 +23,7 @@ namespace SIMS
 
         public static bool checkToken(string username, string token)
         {
+            if (username == "" || token == "") return false;
             RestClient client = new RestClient(Helper.URL_checkToken.Replace("%1", username).Replace("%2", token));
             RestRequest request = new RestRequest("", Method.Get);
             RestResponse response = client.Execute(request);
