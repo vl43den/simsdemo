@@ -1,4 +1,4 @@
-﻿@page "/incidentedit"
+@page "/incidentedit"
 @using Microsoft.AspNetCore.Http.Extensions
 @using Microsoft.AspNetCore.WebUtilities
 @rendermode InteractiveServer
@@ -34,6 +34,10 @@
                 i++;
             }
         </select>
+    </div>
+    <div class="form-group" style="margin-bottom: 10px;">
+        <label for="resourceid">Resource ID:</label>
+        <input type="text" id="resourceid" class="form-control" @bind-value="incident.ResourceID" />
     </div>
     <div class="form-group" style="margin-bottom: 10px; margin-top: 10px;">
         <label for="closed">Closed:</label>
@@ -93,8 +97,24 @@
         NavManager.NavigateTo("incidents");
     }
 
-    private void cmdEscalate_Clicked()
+    private async Task cmdEscalate_Clicked()
     {
-        escalateMessage = "Sorry, not implemented";
+        escalateMessage = "Calling Escalate API...";
+        StateHasChanged();
+        try 
+        {
+            if (await Helper.EscalateIncident(incident.ResourceID))
+            {
+                escalateMessage = "Escalated successfully.";
+            }
+            else
+            {
+                escalateMessage = "Escalate API failed.";
+            }
+        }
+        catch(Exception ex)
+        {
+            escalateMessage = "Error: " + ex.Message;
+        }
     }
 }

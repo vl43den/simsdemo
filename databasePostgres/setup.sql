@@ -15,7 +15,8 @@ CREATE TABLE incident (
     reported_at TIMESTAMP,
     description TEXT,
     title VARCHAR(100),
-    incident_type_id INT REFERENCES incidentType(incident_type_id)
+    incident_type_id INT REFERENCES incidentType(incident_type_id),
+    resource_id VARCHAR(100)
 );
 
 CREATE TABLE simsuser (
@@ -40,8 +41,8 @@ INSERT INTO sims.incidenttype (name) VALUES
    ('problem');
 
 INSERT INTO sims.incident(
-	reporter, reported_at, description, title, incident_type_id)
-	VALUES ('Admin', CURRENT_TIMESTAMP, 'The whole internet is down,', 'Internet down', '1');
+	reporter, reported_at, description, title, incident_type_id, resource_id)
+	VALUES ('Admin', CURRENT_TIMESTAMP, 'The whole internet is down,', 'Internet down', '1', 'i-1234567890abcdef0');
 
 INSERT INTO sims.simsuser(
 	IsAdmin, IsActive, Username, PWDHash, LastLogin)

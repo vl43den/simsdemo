@@ -1,4 +1,4 @@
-﻿using Npgsql;
+using Npgsql;
 
 namespace SIMS
 {
@@ -11,6 +11,7 @@ namespace SIMS
         public string Description { get; set; } = "";
         public string Title { get; set; } = "";
         public int Incident_type { get; set; } = 1;
+        public string ResourceID { get; set; } = "";
 
         public Incident() { }
 
@@ -31,6 +32,7 @@ namespace SIMS
                             Title = (string)reader["Title"];
                             Reported_at = Convert.ToDateTime(reader["Reported_at"]);
                             Incident_type = Convert.ToInt32(reader["Incident_type_id"]);
+                            ResourceID = reader["resource_id"] != DBNull.Value ? (string)reader["resource_id"] : "";
                         }
                     }
                 }
@@ -57,7 +59,8 @@ namespace SIMS
                                 Description = (string)reader["Description"],
                                 Title = (string)reader["Title"],
                                 Reported_at = Convert.ToDateTime(reader["Reported_at"]),
-                                Incident_type = Convert.ToInt32(reader["Incident_type_id"])
+                                Incident_type = Convert.ToInt32(reader["Incident_type_id"]),
+                                ResourceID = reader["resource_id"] != DBNull.Value ? (string)reader["resource_id"] : ""
                             };
                             result.Add(item);
                         }
@@ -76,13 +79,13 @@ namespace SIMS
                 string sql = "";
                 if (Incident_id == 0)
                 {
-                    sql += $"INSERT INTO sims.incident(resolved, reporter, reported_at, description, title, incident_type_id) ";
-                    sql += $"VALUES (@resolved, @reporter, @reported_at, @description, @title, @incident_type_id);";
+                    sql += $"INSERT INTO sims.incident(resolved, reporter, reported_at, description, title, incident_type_id, resource_id) ";
+                    sql += $"VALUES (@resolved, @reporter, @reported_at, @description, @title, @incident_type_id, @resource_id);";
                 }
                 else
                 {
                     sql += $"update sims.incident set resolved = @resolved, reporter = @reporter, reported_at = @reported_at, ";
-                    sql += $"description = @description, title = @title, incident_type_id = @incident_type_id where Incident_id = {Incident_id};";
+                    sql += $"description = @description, title = @title, incident_type_id = @incident_type_id, resource_id = @resource_id where Incident_id = {Incident_id};";
                 }
                 using (NpgsqlCommand cmd = new NpgsqlCommand(sql, db))
                 {
@@ -92,6 +95,7 @@ namespace SIMS
                     cmd.Parameters.AddWithValue("title", Title);
                     cmd.Parameters.AddWithValue("resolved", Resolved);
                     cmd.Parameters.AddWithValue("incident_type_id", Incident_type);
+                    cmd.Parameters.AddWithValue("resource_id", ResourceID);
                     cmd.ExecuteNonQuery();
                 }
                 db.Close();

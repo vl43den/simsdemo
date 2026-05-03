@@ -1,4 +1,4 @@
-﻿using StackExchange.Redis;
+using StackExchange.Redis;
 
 namespace SIMSAPI
 {
@@ -8,7 +8,7 @@ namespace SIMSAPI
 
         public RedisDB() 
         {
-            dbname = Environment.GetEnvironmentVariable("redisdb") ?? "localhost";
+            dbname = Environment.GetEnvironmentVariable("redisdb") ?? throw new Exception("Environment variable 'redisdb' is not set.");
         }
 
         public void StoreToken(string username, string token) 

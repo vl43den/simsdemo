@@ -1,4 +1,4 @@
-﻿using RestSharp;
+using RestSharp;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -39,6 +39,20 @@ namespace SIMS
                 for (int i = 0; i < bytes.Length; i++) { builder.Append(bytes[i].ToString("x2")); }
                 return builder.ToString();
             }
+        }
+
+        public static async Task<bool> EscalateIncident(string resourceId)
+        {
+            if (string.IsNullOrEmpty(resourceId)) return false;
+            string escalateApiUrl = Environment.GetEnvironmentVariable("ESCALATE_API_URL");
+            if (string.IsNullOrEmpty(escalateApiUrl)) throw new Exception("ESCALATE_API_URL environment variable is not set.");
+            
+            RestClient client = new RestClient(escalateApiUrl);
+            RestRequest request = new RestRequest("", Method.Post);
+            request.AddJsonBody(new { resourceId = resourceId });
+            RestResponse response = await client.ExecuteAsync(request);
+            
+            return response.IsSuccessful;
         }
     }
 
