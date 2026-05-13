@@ -20,8 +20,9 @@ namespace SIMS
             using (NpgsqlConnection db = new NpgsqlConnection(base.ConnectionString))
             {
                 db.Open();
-                using (NpgsqlCommand cmd = new NpgsqlCommand($"select * from sims.incident where Incident_id = {id}", db))
+                using (NpgsqlCommand cmd = new NpgsqlCommand($"select * from sims.incident where Incident_id = @id", db))
                 {
+                    cmd.Parameters.AddWithValue("id", id);
                     using (NpgsqlDataReader reader = cmd.ExecuteReader())
                     {
                         if (reader.HasRows && reader.Read())
@@ -85,10 +86,11 @@ namespace SIMS
                 else
                 {
                     sql += $"update sims.incident set resolved = @resolved, reporter = @reporter, reported_at = @reported_at, ";
-                    sql += $"description = @description, title = @title, incident_type_id = @incident_type_id, resource_id = @resource_id where Incident_id = {Incident_id};";
+                    sql += $"description = @description, title = @title, incident_type_id = @incident_type_id, resource_id = @resource_id where Incident_id = @id;";
                 }
                 using (NpgsqlCommand cmd = new NpgsqlCommand(sql, db))
                 {
+                    if (Incident_id != 0) cmd.Parameters.AddWithValue("id", Incident_id);
                     cmd.Parameters.AddWithValue("reporter", Reporter);
                     cmd.Parameters.AddWithValue("reported_at", Reported_at);
                     cmd.Parameters.AddWithValue("description", Description);

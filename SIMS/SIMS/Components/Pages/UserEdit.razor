@@ -1,4 +1,4 @@
-﻿@page "/useredit"
+@page "/useredit"
 @using Microsoft.AspNetCore.Http.Extensions
 @using Microsoft.AspNetCore.WebUtilities
 @rendermode InteractiveServer
@@ -44,7 +44,7 @@
         {
             string username = (await ProtectedSessionStore.GetAsync<string>("username")).Value ?? "";
             string token = (await ProtectedSessionStore.GetAsync<string>("token")).Value ?? "";
-            if (Helper.checkToken(username, token) == false) NavManager.NavigateTo("/");
+            if (await Helper.checkToken(username, token) == false) NavManager.NavigateTo("/");
         }
     }
 

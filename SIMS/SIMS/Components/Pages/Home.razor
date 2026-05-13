@@ -1,4 +1,4 @@
-﻿@page "/"
+@page "/"
 @using Newtonsoft.Json
 @using Newtonsoft.Json.Linq
 @using RestSharp
@@ -48,7 +48,7 @@
         {
             string username = (await ProtectedSessionStore.GetAsync<string>("username")).Value ?? "";
             string token = (await ProtectedSessionStore.GetAsync<string>("token")).Value ?? "";
-            if (Helper.checkToken(username, token))
+            if (await Helper.checkToken(username, token))
             {
                 IsDisabled = true;
                 UserInfo = "Logged in as: " + username;
@@ -57,13 +57,13 @@
         }
     }
 
-    private void cmdLogin_Clicked()
+    private async Task cmdLogin_Clicked()
     {
-        string token = Helper.getToken(Username, Password);
+        string token = await Helper.getToken(Username, Password);
         if (token != "")
         {
-            ProtectedSessionStore.SetAsync("username", Username);
-            ProtectedSessionStore.SetAsync("token", token);
+            await ProtectedSessionStore.SetAsync("username", Username);
+            await ProtectedSessionStore.SetAsync("token", token);
             IsDisabled = true;
             UserInfo = "Logged in as: " + Username;
         }else

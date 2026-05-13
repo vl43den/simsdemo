@@ -1,4 +1,4 @@
-﻿@page "/incidents"
+@page "/incidents"
 @rendermode InteractiveServer
 @using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
 @inject ProtectedSessionStorage ProtectedSessionStore
@@ -56,7 +56,7 @@ else
 
         string username = (await ProtectedSessionStore.GetAsync<string>("username")).Value ?? "";
         string token = (await ProtectedSessionStore.GetAsync<string>("token")).Value ?? "";
-        if (Helper.checkToken(username, token) == false)
+        if (await Helper.checkToken(username, token) == false)
         {
             NavManager.NavigateTo("/");
         }

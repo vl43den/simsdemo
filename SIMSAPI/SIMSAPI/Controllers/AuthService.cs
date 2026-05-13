@@ -5,6 +5,12 @@ using Npgsql;
 
 namespace SIMSAPI.Controllers
 {
+    public class LoginRequest
+    {
+        public string Username { get; set; } = "";
+        public string Password { get; set; } = "";
+    }
+
     [ApiController]
     [Route("[controller]")]
     public class AuthService : ControllerBase
@@ -31,12 +37,12 @@ namespace SIMSAPI.Controllers
         }
 
         [HttpPost]
-        public string Post(string username, string password)
+        public string Post([FromBody] LoginRequest request)
         {
-            if (checkUser(username, password))
+            if (checkUser(request.Username, request.Password))
             {
-                string token = generateToken(username, password);
-                new RedisDB().StoreToken(username, token);
+                string token = generateToken(request.Username, request.Password);
+                new RedisDB().StoreToken(request.Username, token);
                 return token;
             }
             else
@@ -56,7 +62,26 @@ namespace SIMSAPI.Controllers
             try
             {
                 bool result = false;
-                string connectionString = Environment.GetEnvironmentVariable("postgresdb") ?? throw new Exception("Environment variable 'postgresdb' is not set.");
+                string input = Environment.GetEnvironmentVariable("postgresdb") ?? Environment.GetEnvironmentVariable("postgres") ?? throw new Exception("Environment variable 'postgresdb' is not set.");
+                string connectionString = input;
+                if (input.TrimStart().StartsWith("{"))
+                {
+                    try
+                    {
+                        using var doc = System.Text.Json.JsonDocument.Parse(input);
+                        var root = doc.RootElement;
+                        string host = root.TryGetProperty("host", out var h) ? (h.GetString() ?? "sims-postgres.cluster-c44rcgsrem0h.eu-central-1.rds.amazonaws.com") : "sims-postgres.cluster-c44rcgsrem0h.eu-central-1.rds.amazonaws.com";
+                        if (string.IsNullOrEmpty(host)) host = "sims-postgres.cluster-c44rcgsrem0h.eu-central-1.rds.amazonaws.com";
+                        string user = root.TryGetProperty("username", out var u) ? u.GetString() : "";
+                        string pass = root.TryGetProperty("password", out var p) ? p.GetString() : "";
+                        string db = root.TryGetProperty("dbname", out var d) ? (d.GetString() ?? "postgres") : "postgres";
+                        if (string.IsNullOrEmpty(db)) db = "postgres";
+                        int port = root.TryGetProperty("port", out var pt) ? pt.GetInt32() : 5432;
+                        connectionString = $"Host={host};Port={port};Username={user};Password={pass};Database={db};SslMode=Require;";
+                    }
+                    catch { }
+                }
+
 
                 using (NpgsqlConnection db = new NpgsqlConnection(connectionString))
                 {

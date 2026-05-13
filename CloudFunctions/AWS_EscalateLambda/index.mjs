@@ -1,22 +1,25 @@
 import { EC2Client, StopInstancesCommand } from "@aws-sdk/client-ec2";
 import { SNSClient, PublishCommand } from "@aws-sdk/client-sns";
 
-const ec2Client = new EC2Client();
-const snsClient = new SNSClient();
+const ec2Client = new EC2Client({ region: "eu-central-1" });
+const snsClient = new SNSClient({ region: "eu-central-1" });
 
 export const handler = async (event) => {
     try {
         let body;
         if (event.body) {
-            body = typeof event.body === 'string' ? JSON.parse(event.body) : event.body;
+            const rawBody = event.isBase64Encoded ? Buffer.from(event.body, 'base64').toString() : event.body;
+            body = typeof rawBody === 'string' ? JSON.parse(rawBody) : rawBody;
         } else {
-            return { statusCode: 400, body: 'Missing request body' };
+            return { statusCode: 400, body: JSON.stringify({ message: 'Missing request body' }) };
         }
 
-        const resourceId = body.resourceId;
+        const resourceId = body.resourceId || body.resource_id;
         if (!resourceId) {
-            return { statusCode: 400, body: 'Missing resourceId' };
+            return { statusCode: 400, body: JSON.stringify({ message: 'Missing resourceId or resource_id' }) };
         }
+
+        console.log(`Attempting to stop instance: ${resourceId}`);
 
         // Stop the EC2 instance
         const stopParams = {
@@ -38,13 +41,15 @@ export const handler = async (event) => {
 
         return {
             statusCode: 200,
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ message: `Successfully stopped instance ${resourceId}` }),
         };
     } catch (error) {
         console.error("Error escalating incident:", error);
         return {
             statusCode: 500,
-            body: JSON.stringify({ message: 'Internal Server Error', error: error.message }),
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ message: 'Internal Server Error', error: error.message, name: error.name }),
         };
     }
 };

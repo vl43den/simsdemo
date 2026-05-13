@@ -6,28 +6,31 @@ namespace SIMS
 {
     public static class Helper
     {
-        static string APIURL = Environment.GetEnvironmentVariable("api") ?? "http://localhost:8888";
+        static string APIURL = Environment.GetEnvironmentVariable("api") ?? Environment.GetEnvironmentVariable("API") ?? Environment.GetEnvironmentVariable("API_URL") ?? "http://localhost:8888";
         
-        public static string URL_getToken = $"{APIURL}/AuthService?username=%1&password=%2";
-        public static string URL_checkToken = $"{APIURL}/AuthService/check?username=%1&token=%2";
+        public static string URL_getToken = $"{APIURL}/AuthService";
+        public static string URL_checkToken = $"{APIURL}/AuthService/check";
 
-        public static string getToken(string username, string password)
+        public static async Task<string> getToken(string username, string password)
         {
-            RestClient client = new RestClient(Helper.URL_getToken.Replace("%1", username).Replace("%2", password));
+            RestClient client = new RestClient(Helper.URL_getToken);
             RestRequest request = new RestRequest("", Method.Post);
-            RestResponse response = client.Execute(request);
+            request.AddJsonBody(new { username = username, password = password });
+            RestResponse response = await client.ExecuteAsync(request);
             string token = response.Content ?? "";
             token = token.Replace("\"", "");
             return token;
         }
 
-        public static bool checkToken(string username, string token)
+        public static async Task<bool> checkToken(string username, string token)
         {
-            if (username == "" || token == "") return false;
-            RestClient client = new RestClient(Helper.URL_checkToken.Replace("%1", username).Replace("%2", token));
+            if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(token)) return false;
+            RestClient client = new RestClient(Helper.URL_checkToken);
             RestRequest request = new RestRequest("", Method.Get);
-            RestResponse response = client.Execute(request);
-            return response.StatusCode == System.Net.HttpStatusCode.OK ? true : false;
+            request.AddQueryParameter("username", username);
+            request.AddQueryParameter("token", token);
+            RestResponse response = await client.ExecuteAsync(request);
+            return response.IsSuccessful;
         }
 
         public static string ComputeSha256Hash(string rawData)
@@ -43,16 +46,28 @@ namespace SIMS
 
         public static async Task<bool> EscalateIncident(string resourceId)
         {
-            if (string.IsNullOrEmpty(resourceId)) return false;
-            string escalateApiUrl = Environment.GetEnvironmentVariable("ESCALATE_API_URL");
-            if (string.IsNullOrEmpty(escalateApiUrl)) throw new Exception("ESCALATE_API_URL environment variable is not set.");
-            
-            RestClient client = new RestClient(escalateApiUrl);
-            RestRequest request = new RestRequest("", Method.Post);
-            request.AddJsonBody(new { resourceId = resourceId });
-            RestResponse response = await client.ExecuteAsync(request);
-            
-            return response.IsSuccessful;
+            try 
+            {
+                if (string.IsNullOrEmpty(resourceId)) return false;
+                string escalateApiUrl = Environment.GetEnvironmentVariable("ESCALATE_API_URL");
+                string escalateApiKey = Environment.GetEnvironmentVariable("ESCALATE_API_KEY") ?? "";
+                
+                if (string.IsNullOrEmpty(escalateApiUrl)) return false;
+                
+                RestClient client = new RestClient(escalateApiUrl);
+                RestRequest request = new RestRequest("", Method.Post);
+                if (!string.IsNullOrEmpty(escalateApiKey))
+                    request.AddHeader("x-api-key", escalateApiKey);
+                
+                request.AddJsonBody(new { resourceId = resourceId });
+                RestResponse response = await client.ExecuteAsync(request);
+                
+                return response.IsSuccessful;
+            }
+            catch
+            {
+                return false;
+            }
         }
     }
 

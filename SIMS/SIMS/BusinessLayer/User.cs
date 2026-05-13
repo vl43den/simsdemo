@@ -1,4 +1,4 @@
-﻿using Npgsql;
+using Npgsql;
 
 namespace SIMS
 {
@@ -18,8 +18,9 @@ namespace SIMS
             using (NpgsqlConnection db = new NpgsqlConnection(base.ConnectionString))
             {
                 db.Open();
-                using (NpgsqlCommand cmd = new NpgsqlCommand($"select * from sims.simsuser where user_id = {id}", db))
+                using (NpgsqlCommand cmd = new NpgsqlCommand($"select * from sims.simsuser where user_id = @id", db))
                 {
+                    cmd.Parameters.AddWithValue("id", id);
                     using (NpgsqlDataReader reader = cmd.ExecuteReader())
                     {
                         if (reader.HasRows && reader.Read())
@@ -81,10 +82,11 @@ namespace SIMS
                 else
                 {
                     sql += $"update sims.simsuser set IsActive = @IsActive, IsAdmin = @IsAdmin, Username = @Username, ";
-                    sql += $"PWDHash = @PWDHash, LastLogin = @LastLogin where User_id = {User_id};";
+                    sql += $"PWDHash = @PWDHash, LastLogin = @LastLogin where User_id = @id;";
                 }
                 using (NpgsqlCommand cmd = new NpgsqlCommand(sql, db))
                 {
+                    if (User_id != 0) cmd.Parameters.AddWithValue("id", User_id);
                     cmd.Parameters.AddWithValue("IsActive", IsActive);
                     cmd.Parameters.AddWithValue("IsAdmin", IsAdmin);
                     cmd.Parameters.AddWithValue("Username", Username);

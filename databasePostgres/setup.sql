@@ -46,7 +46,7 @@ INSERT INTO sims.incident(
 
 INSERT INTO sims.simsuser(
 	IsAdmin, IsActive, Username, PWDHash, LastLogin)
-	VALUES (true, true, 'admin', '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918', CURRENT_TIMESTAMP);
+	VALUES (true, true, 'admin', '0afd8f3eb241eaf2d2b4191f0bdf29ac88ab3c612a1cc78a0cabbdb6e32f54ba', CURRENT_TIMESTAMP);
 
 INSERT INTO sims.simsuser(
 	IsAdmin, IsActive, Username, PWDHash, LastLogin)
